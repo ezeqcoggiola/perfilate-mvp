@@ -1,4 +1,4 @@
-# Perfilate — MVP
+# Perfilate — maqueta navegable
 
 Prototipo **no funcional** de Perfilate, plataforma de orientacion academica y
 profesional en datos. Hecho para mostrar como seria la pagina: tiene todas sus
