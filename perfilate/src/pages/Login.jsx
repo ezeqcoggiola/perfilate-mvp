@@ -1,14 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useApp } from "../state/store";
 import { Logo } from "../components/Layout";
 import { DIMENSIONS } from "../data/mockData";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useApp();
-
-  const enterUser = () => { login("user"); navigate("/onboarding"); };
-  const enterAdmin = () => { login("admin"); navigate("/admin"); };
 
   return (
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
@@ -28,8 +23,8 @@ export default function Login() {
             cuales encajan mejor con vos, y por que.
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <button className="btn btn-primary" onClick={enterUser}>Empezar como usuario</button>
-            <button className="btn btn-ghost" onClick={enterAdmin}>Entrar como admin</button>
+            <button className="btn btn-primary" onClick={() => navigate("/registro")}>Crear cuenta</button>
+            <button className="btn btn-ghost" onClick={() => navigate("/ingresar")}>Ya tengo cuenta</button>
           </div>
           <p className="mono" style={{ fontSize: "0.74rem", color: "var(--muted-soft)" }}>
             Maqueta de demostracion · ningun dato se guarda

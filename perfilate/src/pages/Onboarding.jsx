@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../state/store";
 import { Logo } from "../components/Layout";
-import { DIMENSIONS } from "../data/mockData";
+import { DIMENSIONS, SKILLS, SITUACIONES, AREAS_SUGERIDAS, METAS, PERFILES_OBJETIVO } from "../data/mockData";
+
+const inputStyle = {
+  padding: "12px 14px", border: "1px solid var(--line)",
+  borderRadius: "var(--radius-sm)", background: "var(--surface)",
+};
 
 const METHODS = [
   { key: "manual", title: "Carga manual", desc: "Indicas tus intereses con controles simples.", ready: true },
@@ -15,12 +20,27 @@ export default function Onboarding() {
   const { updateProfile, updateWeights } = useApp();
   const [step, setStep] = useState("method"); // method | manual
   const [name, setName] = useState("");
+  const [situacion, setSituacion] = useState("");
+  const [areaOrigen, setAreaOrigen] = useState("");
+  const [meta, setMeta] = useState("");
+  const [perfilObjetivo, setPerfilObjetivo] = useState("");
+  const [skills, setSkills] = useState([]);
   const [weights, setWeights] = useState({ prog: 50, stats: 50, infra: 50, comm: 50, research: 50 });
 
   const setW = (key, val) => setWeights((w) => ({ ...w, [key]: Number(val) }));
+  const toggleSkill = (id) =>
+    setSkills((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const finish = () => {
-    updateProfile({ name: name || "Invitado", headline: "Perfil cargado manualmente" });
+    updateProfile({
+      name: name || "Invitado",
+      headline: "Perfil cargado manualmente",
+      situacion,
+      areaOrigen,
+      meta,
+      perfilObjetivo,
+      skills,
+    });
     updateWeights(weights);
     navigate("/app");
   };
@@ -71,22 +91,107 @@ export default function Onboarding() {
               <span className="eyebrow">Paso 2 de 2 · Carga manual</span>
               <h1 style={{ fontSize: "2.4rem" }}>Conta&shy;nos sobre vos</h1>
               <p style={{ color: "var(--muted)" }}>
-                Mov&eacute; los controles seg&uacute;n cu&aacute;nto te interesa cada area. Con eso calculamos tus rutas.
+                Cont&aacute;nos un poco de vos. Tus intereses definen tus rutas; lo dem&aacute;s nos da contexto.
               </p>
             </div>
 
-            <div className="card" style={{ padding: 22, display: "grid", gap: 8 }}>
-              <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>Tu nombre</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Como queres que te llamemos"
-                style={{ padding: "12px 14px", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", background: "var(--surface)" }}
-              />
+            {/* Sobre vos */}
+            <div className="card" style={{ padding: 24, display: "grid", gap: 18 }}>
+              <span style={{ fontWeight: 600 }}>Sobre vos</span>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>Tu nombre</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Como queres que te llamemos"
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>Situaci&oacute;n actual</label>
+                <select value={situacion} onChange={(e) => setSituacion(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                  <option value="" disabled>Eleg&iacute; una opci&oacute;n</option>
+                  {SITUACIONES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>Carrera o &aacute;rea de origen</label>
+                <input
+                  list="areas-origen"
+                  value={areaOrigen}
+                  onChange={(e) => setAreaOrigen(e.target.value)}
+                  placeholder="Ej: Ciencia de Datos, Ingenieria, Matematica"
+                  style={inputStyle}
+                />
+                <datalist id="areas-origen">
+                  {AREAS_SUGERIDAS.map((a) => <option key={a} value={a} />)}
+                </datalist>
+              </div>
             </div>
 
-            <div className="card" style={{ padding: 24, display: "grid", gap: 22 }}>
-              <span style={{ fontWeight: 600 }}>¿Cuanto te tira cada area?</span>
+            {/* Tu objetivo */}
+            <div className="card" style={{ padding: 24, display: "grid", gap: 18 }}>
+              <span style={{ fontWeight: 600 }}>Tu objetivo</span>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>¿Cu&aacute;l es tu meta?</label>
+                <select value={meta} onChange={(e) => setMeta(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                  <option value="" disabled>Eleg&iacute; una opci&oacute;n</option>
+                  {METAS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>¿A qu&eacute; perfil apunt&aacute;s?</label>
+                <select value={perfilObjetivo} onChange={(e) => setPerfilObjetivo(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                  <option value="" disabled>Eleg&iacute; una opci&oacute;n</option>
+                  {PERFILES_OBJETIVO.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Conocimientos o habilidades */}
+            <div className="card" style={{ padding: 24, display: "grid", gap: 20 }}>
+              <div style={{ display: "grid", gap: 4 }}>
+                <span style={{ fontWeight: 600 }}>Conocimientos o habilidades</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Toc&aacute; los que ya manej&aacute;s. Pod&eacute;s elegir varios.</span>
+              </div>
+              {SKILLS.map((group) => (
+                <div key={group.category} style={{ display: "grid", gap: 10 }}>
+                  <span className="mono" style={{ fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-soft)" }}>
+                    {group.category}
+                  </span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {group.items.map((sk) => {
+                      const on = skills.includes(sk.id);
+                      return (
+                        <button
+                          key={sk.id}
+                          type="button"
+                          onClick={() => toggleSkill(sk.id)}
+                          className={on ? "tag" : "tag tag-muted"}
+                          style={on
+                            ? { cursor: "pointer", background: "var(--primary)", color: "#fff", border: "1px solid var(--primary)" }
+                            : { cursor: "pointer" }}
+                        >
+                          {sk.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Intereses en datos (alimentan la recomendacion) */}
+            <div className="card" style={{ padding: 24, display: "grid", gap: 20 }}>
+              <div style={{ display: "grid", gap: 4 }}>
+                <span style={{ fontWeight: 600 }}>Intereses en datos</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
+                  Esto marca hacia d&oacute;nde quer&eacute;s crecer, no lo que ya sab&eacute;s.
+                </span>
+              </div>
               {DIMENSIONS.map((d) => (
                 <div key={d.key} style={{ display: "grid", gap: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>

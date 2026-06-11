@@ -7,8 +7,9 @@ import { buildReason } from "../data/mockData";
 // y la justificacion generada.
 export default function RouteCard({ route, score, showReason = false }) {
   const navigate = useNavigate();
-  const { saved, toggleSaved, profile } = useApp();
+  const { saved, toggleSaved, profile, catalog } = useApp();
   const isSaved = saved.includes(route.id);
+  const resourceCount = catalog.filter((r) => r.routeId === route.id).length;
 
   return (
     <article
@@ -39,7 +40,7 @@ export default function RouteCard({ route, score, showReason = false }) {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
         <span className="mono" style={{ fontSize: "0.76rem", color: "var(--muted-soft)" }}>
-          {route.resources.length} recursos
+          {resourceCount} recursos
         </span>
         <button
           className="btn btn-ghost"

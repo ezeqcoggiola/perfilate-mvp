@@ -5,6 +5,7 @@ const userLinks = [
   { to: "/app", label: "Inicio", end: true },
   { to: "/app/rutas", label: "Rutas" },
   { to: "/app/guardados", label: "Guardados" },
+  { to: "/app/proponer", label: "Proponer" },
   { to: "/app/perfil", label: "Perfil" },
 ];
 

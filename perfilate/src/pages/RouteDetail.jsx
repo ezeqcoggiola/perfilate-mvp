@@ -6,12 +6,13 @@ import { AffinityRing, DimensionBars } from "../components/AffinityMeter";
 export default function RouteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { profile, saved, toggleSaved } = useApp();
+  const { profile, saved, toggleSaved, catalog } = useApp();
   const route = ROUTES.find((r) => r.id === id);
 
   if (!route) return <p>Ruta no encontrada. <button className="btn btn-ghost" onClick={() => navigate("/app")}>Volver</button></p>;
 
   const score = Math.round(cosineAffinity(profile.weights, route.weights) * 100);
+  const resources = catalog.filter((r) => r.routeId === route.id);
   const isSaved = saved.includes(route.id);
 
   return (
@@ -49,8 +50,15 @@ export default function RouteDetail() {
       <section style={{ display: "grid", gap: 16 }}>
         <h3 style={{ fontSize: "1.3rem" }}>Camino recomendado</h3>
         <div style={{ display: "grid", gap: 12 }}>
-          {route.resources.map((res, i) => (
-            <div key={res.id} className="card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 16 }}>
+          {resources.map((res, i) => (
+            <div
+              key={res.id}
+              className="card"
+              style={{ padding: 18, display: "flex", alignItems: "center", gap: 16, cursor: "pointer" }}
+              onClick={() => navigate(`/recurso/${res.id}`)}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-md)")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-sm)")}
+            >
               <span className="mono" style={{ fontSize: "1.1rem", color: "var(--muted-soft)", width: 28 }}>{String(i + 1).padStart(2, "0")}</span>
               <div style={{ display: "grid", gap: 4, flex: 1 }}>
                 <strong style={{ fontSize: "1rem" }}>{res.name}</strong>
@@ -59,7 +67,11 @@ export default function RouteDetail() {
                   <span className="tag tag-muted">{res.level}</span>
                 </div>
               </div>
-              <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => toggleSaved(res.id)}>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "7px 14px", fontSize: "0.82rem" }}
+                onClick={(e) => { e.stopPropagation(); toggleSaved(res.id); }}
+              >
                 {saved.includes(res.id) ? "♥" : "♡"}
               </button>
             </div>
