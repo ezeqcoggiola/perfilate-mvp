@@ -1,6 +1,6 @@
 # Generated requirements for perfilate
 # Source: perfilate/package.json and perfilate/package-lock.json
-# Generated: 2026-06-12T17:37:17.431Z
+# Generated: 2026-06-12T17:37:43.376Z
 
 react@18.3.1
 react-dom@18.3.1
