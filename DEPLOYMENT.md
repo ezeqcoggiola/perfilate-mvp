@@ -159,9 +159,17 @@ git push
    - **Name**: `perfilate-mvp` (o el nombre que prefieras)
    - **Region**: Elige la que esté más cerca (ej. Oregon, Frankfurt, etc.)
    - **Branch**: `main` (o tu rama default)
-   - **Build Command**: déjalo **vacío** (el Dockerfile tiene el build)
-   - **Start Command**: déjalo **vacío** (el Dockerfile tiene el CMD)
    - **Runtime**: Docker (debe detectarse automáticamente)
+   - **Build Command**: Si Render no te deja dejarlo vacío, pon:
+     ```
+     echo "Build handled by Dockerfile"
+     ```
+     (O simplemente deja un punto `.` si aún así lo rechaza)
+   - **Start Command**: Si Render no te deja dejarlo vacío, pon:
+     ```
+     echo "Start handled by Dockerfile CMD"
+     ```
+     (Render ignorará esto porque el Dockerfile tiene `CMD` definido)
 
 5. Haz clic en "Create Web Service".
 
