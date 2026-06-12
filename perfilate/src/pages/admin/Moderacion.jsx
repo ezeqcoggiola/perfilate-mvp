@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
 import { SURVEYS } from "../../data/adminMock";
-import { relativeDate } from "../../data/mockData";
+import { relativeDate, HOY } from "../../data/mockData";
 import Modal from "../../components/Modal";
 
 const STATUS = {
-  visible: { label: "Visible", bg: "#E2F6EC", fg: "#1E8E5A" },
-  reportado: { label: "Reportado", bg: "var(--accent-soft)", fg: "#C0392B" },
+  visible: { label: "Visible", bg: "var(--ok-soft)", fg: "var(--ok-strong)" },
+  reportado: { label: "Reportado", bg: "var(--accent-soft)", fg: "var(--danger-strong)" },
   oculto: { label: "Oculto", bg: "var(--bg)", fg: "var(--muted)" },
 };
 const FILTROS = [
@@ -40,7 +40,7 @@ export default function Moderacion() {
   const [sent, setSent] = useState(false);
 
   const usuarios = [...new Set(comments.map((c) => c.by))];
-  const today = comments.reduce((m, c) => (c.date > m ? c.date : m), "");
+  const today = HOY;
   const reportados = comments.filter((c) => c.status === "reportado").length;
 
   const list = comments
@@ -122,7 +122,7 @@ export default function Moderacion() {
 
           <div style={{ display: "grid", gap: 12 }}>
             {list.map((c) => (
-              <div key={c.id} className="card" style={{ padding: 18, display: "grid", gap: 10, borderColor: c.status === "reportado" ? "#E7B0B0" : "var(--line)" }}>
+              <div key={c.id} className="card" style={{ padding: 18, display: "grid", gap: 10, borderColor: c.status === "reportado" ? "var(--danger-line)" : "var(--line)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: 4 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -151,7 +151,7 @@ export default function Moderacion() {
                     </>
                   )}
                   <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.8rem" }} onClick={() => openModal("suspend", c)}>Suspender usuario</button>
-                  <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.8rem", color: "#C0392B", borderColor: "#E7B0B0" }} onClick={() => openModal("delete", c)}>Borrar</button>
+                  <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.8rem", color: "var(--danger-strong)", borderColor: "var(--danger-line)" }} onClick={() => openModal("delete", c)}>Borrar</button>
                 </div>
               </div>
             ))}
@@ -227,7 +227,7 @@ export default function Moderacion() {
               />
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button className="btn btn-ghost" onClick={closeModal}>Cancelar</button>
-                <button className="btn" style={{ background: "#D64545", color: "#fff", opacity: reason.trim() ? 1 : 0.5 }} onClick={confirmModal}>
+                <button className="btn" style={{ background: "var(--danger)", color: "#fff", opacity: reason.trim() ? 1 : 0.5 }} onClick={confirmModal}>
                   {modal.type === "delete" ? "Borrar" : "Suspender"}
                 </button>
               </div>

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
+import { HOY } from "../../data/mockData";
 import { ADMIN_ACTIVITY } from "../../data/adminMock";
 
 const SECTIONS = [
@@ -14,7 +15,7 @@ export default function Dashboard() {
   const { catalog, proposals, routes, comments } = useApp();
 
   const pending = proposals.filter((p) => p.status === "pendiente").length;
-  const refMonth = comments.reduce((m, c) => (c.date > m ? c.date : m), "").slice(0, 7);
+  const refMonth = HOY.slice(0, 7);
   const commentsThisMonth = comments.filter((c) => c.date.slice(0, 7) === refMonth).length;
 
   const kpis = [

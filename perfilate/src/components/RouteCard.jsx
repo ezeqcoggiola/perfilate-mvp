@@ -9,7 +9,7 @@ export default function RouteCard({ route, score, showReason = false, showStats 
   const navigate = useNavigate();
   const { saved, toggleSaved, profile, catalog } = useApp();
   const isSaved = saved.includes(route.id);
-  const resources = resourcesOfRoute(route, catalog);
+  const resources = resourcesOfRoute(route, catalog).filter((r) => r.estado !== "baja");
   const resourceCount = resources.length;
   const stats = showStats ? routeStats(resources) : null;
   const temas = showStats ? (route.temas ?? []).map((id) => TEMAS.find((t) => t.id === id)?.name).filter(Boolean) : [];

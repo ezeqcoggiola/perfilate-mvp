@@ -11,7 +11,7 @@ const TABS = [
 
 const STATUS_STYLE = {
   pendiente: { background: "var(--primary-wash)", color: "var(--primary-deep)" },
-  aprobada: { background: "#E2F6EC", color: "#1E8E5A" },
+  aprobada: { background: "var(--ok-soft)", color: "var(--ok-strong)" },
   descartada: { background: "var(--bg)", color: "var(--muted)" },
 };
 
@@ -114,7 +114,7 @@ export default function Proposals() {
                     </>
                   )}
                   {p.status === "aprobada" && (
-                    <span style={{ alignSelf: "center", fontSize: "0.82rem", color: "#1E8E5A" }}>✓ Ya en el catalogo</span>
+                    <span style={{ alignSelf: "center", fontSize: "0.82rem", color: "var(--ok-strong)" }}>✓ Ya en el catalogo</span>
                   )}
                   {p.status === "descartada" && (
                     <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => setProposalStatus(p.id, "pendiente")}>
@@ -144,7 +144,7 @@ export default function Proposals() {
               />
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button className="btn btn-ghost" onClick={closeReject}>Cancelar</button>
-                <button className="btn" style={{ background: "#D64545", color: "#fff", opacity: rejectComment.trim() ? 1 : 0.5 }} onClick={sendReject}>
+                <button className="btn" style={{ background: "var(--danger)", color: "#fff", opacity: rejectComment.trim() ? 1 : 0.5 }} onClick={sendReject}>
                   Enviar rechazo
                 </button>
               </div>

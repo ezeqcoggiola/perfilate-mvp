@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
 import { routeStats, resourcesOfRoute, TEMAS } from "../../data/mockData";
+import Modal from "../../components/Modal";
 
 export default function Routes() {
   const navigate = useNavigate();
-  const { routes, catalog } = useApp();
+  const { routes, catalog, deleteRoute } = useApp();
+  const [confirmDel, setConfirmDel] = useState(null);
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
@@ -33,9 +36,10 @@ export default function Routes() {
                     {r.profile} · {(r.resourceIds ?? []).length} recursos · {stats.dificultad ?? "—"} · ≈ {stats.weeks} sem
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => navigate(`/ruta/${r.id}`)}>Ver</button>
                   <button className="btn btn-primary" style={{ padding: "7px 16px", fontSize: "0.82rem" }} onClick={() => navigate(`/admin/rutas/${r.id}/editar`)}>Editar</button>
+                  <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem", color: "var(--danger-strong)", borderColor: "var(--danger-line)" }} onClick={() => setConfirmDel(r)}>Eliminar</button>
                 </div>
               </div>
               {temas.length > 0 && (
@@ -47,6 +51,18 @@ export default function Routes() {
           );
         })}
       </div>
+
+      {confirmDel && (
+        <Modal title="Eliminar ruta" onClose={() => setConfirmDel(null)}>
+          <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
+            ¿Eliminar la ruta <strong>{confirmDel.name}</strong>? No se puede deshacer. Los recursos siguen en el cat&aacute;logo.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button className="btn btn-ghost" onClick={() => setConfirmDel(null)}>Cancelar</button>
+            <button className="btn" style={{ background: "var(--danger)", color: "#fff" }} onClick={() => { deleteRoute(confirmDel.id); setConfirmDel(null); }}>Eliminar</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -15,10 +15,16 @@ const field = {
   borderRadius: "var(--radius-sm)", background: "var(--surface)", fontSize: "0.9rem",
 };
 const COLS = "2fr 1fr 1fr 1.3fr auto";
+const ESTADOS = ["activo", "desactualizado", "baja"];
+const estadoStyle = {
+  desactualizado: { background: "var(--accent-soft)", color: "var(--danger-strong)" },
+  baja: { background: "var(--danger-soft)", color: "var(--danger-strong)" },
+};
+const miniSelect = { padding: "5px 8px", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", background: "var(--surface)", fontSize: "0.78rem", cursor: "pointer" };
 
 export default function Catalog() {
   const navigate = useNavigate();
-  const { catalog, addCatalogResources, routes } = useApp();
+  const { catalog, addCatalogResources, updateCatalogResource, routes } = useApp();
   const routeNames = (id) => {
     const rs = routesOfResource(id, routes);
     return rs.length === 0 ? "—" : rs.length === 1 ? rs[0].name : `${rs[0].name} +${rs.length - 1}`;
@@ -123,17 +129,19 @@ export default function Catalog() {
             onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <span style={{ fontSize: "0.92rem", fontWeight: 600 }}>{r.name}</span>
+            <span style={{ fontSize: "0.92rem", fontWeight: 600, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              {r.name}
+              {r.estado && r.estado !== "activo" && <span className="tag" style={{ ...estadoStyle[r.estado], fontSize: "0.62rem" }}>{r.estado}</span>}
+            </span>
             <span><span className="tag tag-muted">{r.type}</span></span>
             <span style={{ fontSize: "0.88rem", color: "var(--muted)" }}>{r.level}</span>
             <span style={{ fontSize: "0.88rem", color: "var(--muted)" }}>{routeNames(r.id)}</span>
-            <button
-              className="btn btn-ghost"
-              style={{ padding: "6px 14px", fontSize: "0.8rem" }}
-              onClick={(e) => { e.stopPropagation(); navigate(`/admin/catalogo/${r.id}/editar`); }}
-            >
-              Editar
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
+              <select value={r.estado || "activo"} onChange={(e) => updateCatalogResource(r.id, { estado: e.target.value })} style={miniSelect}>
+                {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button className="btn btn-ghost" style={{ padding: "6px 14px", fontSize: "0.8rem" }} onClick={() => navigate(`/admin/catalogo/${r.id}/editar`)}>Editar</button>
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (

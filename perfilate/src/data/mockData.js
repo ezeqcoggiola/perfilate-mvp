@@ -599,6 +599,11 @@ export const INITIAL_ROUTES = ROUTES.map(({ resources, ...route }) => ({
   resourceIds: resources.map((r) => r.id),
 }));
 
+// Fecha de referencia de la demo ("hoy"). Todo lo que genera fechas (comentarios,
+// propuestas) y todo lo que las interpreta ("este mes", "hace N dias") usa esta
+// constante, asi la maqueta es estable sin importar la fecha real del navegador.
+export const HOY = "2026-06-12";
+
 // Fecha relativa ("hoy", "ayer", "hace N dias") respecto a un dia de referencia.
 export function relativeDate(date, today) {
   if (!date) return "";

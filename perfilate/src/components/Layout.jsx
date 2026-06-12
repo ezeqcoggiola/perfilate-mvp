@@ -17,10 +17,13 @@ const adminLinks = [
   { to: "/admin/moderacion", label: "Moderacion" },
 ];
 
-export default function Layout({ admin = false }) {
+export default function Layout({ admin }) {
   const { role, logout } = useApp();
   const navigate = useNavigate();
-  const links = admin ? adminLinks : userLinks;
+  // Si no se fuerza por prop (detalles compartidos /ruta y /recurso), la nav
+  // sigue al rol: el admin no pierde su barra al abrir una ruta o recurso.
+  const isAdmin = admin ?? (role === "admin");
+  const links = isAdmin ? adminLinks : userLinks;
 
   return (
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
@@ -32,7 +35,7 @@ export default function Layout({ admin = false }) {
         }}
       >
         <div className="container" style={{ height: 64, display: "flex", alignItems: "center", gap: 28 }}>
-          <Logo onClick={() => navigate(admin ? "/admin" : "/app")} admin={admin} />
+          <Logo onClick={() => navigate(isAdmin ? "/admin" : "/app")} admin={isAdmin} />
           <nav style={{ display: "flex", gap: 4, flex: 1 }}>
             {links.map((l) => (
               <NavLink

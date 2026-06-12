@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { SAMPLE_PROFILE, rankRoutes, INITIAL_ROUTES } from "../data/mockData";
+import { SAMPLE_PROFILE, rankRoutes, INITIAL_ROUTES, HOY } from "../data/mockData";
 import { INITIAL_CATALOG, PROPOSALS, COMMENTS } from "../data/adminMock";
 
 // Estado global de la maqueta. OJO: todo vive en memoria. Si recargas
@@ -41,6 +41,8 @@ export function AppProvider({ children }) {
 
   const dismissRoute = (id) =>
     setDismissed((d) => (d.includes(id) ? d : [...d, id]));
+  const restoreRoute = (id) => setDismissed((d) => d.filter((x) => x !== id));
+  const restoreAllDismissed = () => setDismissed([]);
 
   // Puntuacion del usuario a un recurso (en memoria, no afecta la afinidad).
   const rateResource = (id, score, comment = "") =>
@@ -58,7 +60,7 @@ export function AppProvider({ children }) {
   // Propuestas de recursos (en memoria).
   const addProposal = (p) =>
     setProposals((ps) => [
-      { id: `prop-${Date.now()}`, date: new Date().toISOString().slice(0, 10), status: "pendiente", ...p },
+      { id: `prop-${Date.now()}`, date: HOY, status: "pendiente", ...p },
       ...ps,
     ]);
   const setProposalStatus = (id, status) =>
@@ -69,6 +71,7 @@ export function AppProvider({ children }) {
     setRoutes((rs) => [{ id: `route-${Date.now()}`, resourceIds: [], temas: [], ...route }, ...rs]);
   const updateRoute = (id, patch) =>
     setRoutes((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const deleteRoute = (id) => setRoutes((rs) => rs.filter((r) => r.id !== id));
   const addResourceToRoute = (routeId, resourceId) =>
     setRoutes((rs) => rs.map((r) => (r.id === routeId && !(r.resourceIds ?? []).includes(resourceId)
       ? { ...r, resourceIds: [...(r.resourceIds ?? []), resourceId] } : r)));
@@ -101,7 +104,7 @@ export function AppProvider({ children }) {
     setComments((cs) => cs.map((c) => (c.by === by ? { ...c, status: "oculto" } : c)));
   const upsertUserComment = ({ by, resourceId, resourceName, score, text }) =>
     setComments((cs) => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = HOY;
       const idx = cs.findIndex((c) => c.by === by && c.resourceId === resourceId);
       if (idx >= 0) {
         const next = [...cs];
@@ -119,11 +122,11 @@ export function AppProvider({ children }) {
     role, login, logout,
     profile, updateWeights, updateProfile,
     saved, toggleSaved,
-    dismissed, dismissRoute,
+    dismissed, dismissRoute, restoreRoute, restoreAllDismissed,
     ratings, rateResource,
     catalog, addCatalogResources, updateCatalogResource,
     proposals, addProposal, setProposalStatus,
-    routes, addRoute, updateRoute,
+    routes, addRoute, updateRoute, deleteRoute,
     addResourceToRoute, removeResourceFromRoute, toggleResourceInRoute, moveResourceInRoute,
     comments, setCommentStatus, deleteComment, suspendUser, upsertUserComment,
     recommendations,

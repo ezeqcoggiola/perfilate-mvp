@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../state/store";
-import { DIMENSIONS, formatDuration, routesOfResource, relativeDate } from "../data/mockData";
+import { DIMENSIONS, formatDuration, routesOfResource, relativeDate, HOY } from "../data/mockData";
 
 // Estrellas 1-5. Si recibe onChange es interactiva; si no, de solo lectura.
 function Stars({ value, onChange, size = 26 }) {
@@ -56,11 +56,15 @@ export default function ResourceDetail() {
   const myRoutes = routesOfResource(res.id, routes);
   const origin = res.origin;
   const hasOrigin = origin && (origin.provider || origin.kind || origin.partOf);
-  const hasRating = res.rating && res.rating.count > 0;
   const durStr = formatDuration(res.duration);
 
+  // Valoracion derivada de los comentarios visibles (coherente con lo que se ve,
+  // y se mueve cuando el usuario deja su comentario).
   const resComments = comments.filter((c) => c.resourceId === res.id && c.status === "visible").sort((a, b) => b.date.localeCompare(a.date));
-  const today = comments.reduce((m, c) => (c.date > m ? c.date : m), "");
+  const ratingCount = resComments.length;
+  const ratingAvg = ratingCount ? resComments.reduce((a, c) => a + c.score, 0) / ratingCount : 0;
+  const hasRating = ratingCount > 0;
+  const today = HOY;
 
   const submit = () => {
     if (!score) return;
@@ -83,6 +87,8 @@ export default function ResourceDetail() {
             <span className="tag tag-muted">{res.type}</span>
             <span className="tag tag-muted">{res.level}</span>
             {durStr && <span className="tag tag-muted">⏱ {durStr}</span>}
+            {res.estado === "desactualizado" && <span className="tag" style={{ background: "var(--accent-soft)", color: "var(--danger-strong)" }}>Desactualizado</span>}
+            {res.estado === "baja" && <span className="tag" style={{ background: "var(--danger-soft)", color: "var(--danger-strong)" }}>Dado de baja</span>}
           </div>
           <h1 style={{ fontSize: "2.4rem" }}>{res.name}</h1>
 
@@ -114,9 +120,9 @@ export default function ResourceDetail() {
         {hasRating && (
           <div className="card" style={{ padding: 20, display: "grid", placeItems: "center", gap: 4, minWidth: 150 }}>
             <span className="eyebrow">Valoracion</span>
-            <span className="mono" style={{ fontSize: "1.8rem", fontWeight: 700 }}>{res.rating.avg}</span>
-            <Stars value={Math.round(res.rating.avg)} size={16} />
-            <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{res.rating.count} votos</span>
+            <span className="mono" style={{ fontSize: "1.8rem", fontWeight: 700 }}>{ratingAvg.toFixed(1)}</span>
+            <Stars value={Math.round(ratingAvg)} size={16} />
+            <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{ratingCount} {ratingCount === 1 ? "resena" : "resenas"}</span>
           </div>
         )}
       </header>

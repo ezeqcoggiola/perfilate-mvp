@@ -27,6 +27,14 @@ function Require({ children }) {
   return role ? children : <Navigate to="/" replace />;
 }
 
+// Guard de admin: requiere sesion y rol admin; si es usuario, lo manda al area de usuario.
+function RequireAdmin({ children }) {
+  const { role } = useApp();
+  if (!role) return <Navigate to="/" replace />;
+  if (role !== "admin") return <Navigate to="/app" replace />;
+  return children;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -55,7 +63,7 @@ export default function App() {
       </Route>
 
       {/* Area admin */}
-      <Route path="/admin" element={<Require><Layout admin /></Require>}>
+      <Route path="/admin" element={<RequireAdmin><Layout admin /></RequireAdmin>}>
         <Route index element={<Dashboard />} />
         <Route path="catalogo" element={<Catalog />} />
         <Route path="catalogo/nuevo" element={<CatalogForm />} />

@@ -12,7 +12,7 @@ export default function RouteDetail() {
   if (!route) return <p>Ruta no encontrada. <button className="btn btn-ghost" onClick={() => navigate("/app")}>Volver</button></p>;
 
   const score = Math.round(cosineAffinity(profile.weights, route.weights) * 100);
-  const resources = resourcesOfRoute(route, catalog);
+  const resources = resourcesOfRoute(route, catalog).filter((r) => r.estado !== "baja");
   const stats = routeStats(resources);
   const temas = (route.temas ?? []).map((id) => TEMAS.find((t) => t.id === id)?.name).filter(Boolean);
   const isSaved = saved.includes(route.id);
@@ -76,6 +76,7 @@ export default function RouteDetail() {
                 <div style={{ display: "flex", gap: 8 }}>
                   <span className="tag tag-muted">{res.type}</span>
                   <span className="tag tag-muted">{res.level}</span>
+                  {res.estado === "desactualizado" && <span className="tag" style={{ background: "var(--accent-soft)", color: "var(--danger-strong)" }}>desactualizado</span>}
                 </div>
               </div>
               <button

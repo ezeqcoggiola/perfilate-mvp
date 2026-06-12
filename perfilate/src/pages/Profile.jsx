@@ -174,7 +174,7 @@ export default function Profile() {
       </section>
 
       {/* Eliminar cuenta (US 1.3) */}
-      <section className="card" style={{ padding: 24, display: "grid", gap: 12, borderColor: confirmDelete ? "#E7B0B0" : "var(--line)" }}>
+      <section className="card" style={{ padding: 24, display: "grid", gap: 12, borderColor: confirmDelete ? "var(--danger-line)" : "var(--line)" }}>
         <strong style={{ fontSize: "1.05rem" }}>Eliminar cuenta</strong>
         {!confirmDelete ? (
           <>
@@ -183,7 +183,7 @@ export default function Profile() {
             </span>
             <button
               className="btn btn-ghost"
-              style={{ width: "fit-content", color: "#C0392B", borderColor: "#E7B0B0" }}
+              style={{ width: "fit-content", color: "var(--danger-strong)", borderColor: "var(--danger-line)" }}
               onClick={() => setConfirmDelete(true)}
             >
               Eliminar mi cuenta
@@ -195,7 +195,7 @@ export default function Profile() {
               ¿Seguro que quer&eacute;s eliminar tu cuenta? Vas a perder tu perfil, tus guardados y tus puntuaciones, y no se puede deshacer.
             </span>
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn" style={{ background: "#D64545", color: "#fff" }} onClick={deleteAccount}>
+              <button className="btn" style={{ background: "var(--danger)", color: "#fff" }} onClick={deleteAccount}>
                 S&iacute;, eliminar cuenta
               </button>
               <button className="btn btn-ghost" onClick={() => setConfirmDelete(false)}>Cancelar</button>

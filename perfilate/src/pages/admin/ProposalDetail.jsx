@@ -7,7 +7,7 @@ import Modal from "../../components/Modal";
 const dimLabel = (key) => DIMENSIONS.find((d) => d.key === key)?.short ?? key;
 const STATUS_STYLE = {
   pendiente: { background: "var(--primary-wash)", color: "var(--primary-deep)" },
-  aprobada: { background: "#E2F6EC", color: "#1E8E5A" },
+  aprobada: { background: "var(--ok-soft)", color: "var(--ok-strong)" },
   descartada: { background: "var(--bg)", color: "var(--muted)" },
 };
 
@@ -137,7 +137,7 @@ export default function ProposalDetail() {
             <button className="btn btn-ghost" onClick={openReject}>Descartar</button>
           </>
         )}
-        {p.status === "aprobada" && <span style={{ alignSelf: "center", color: "#1E8E5A", fontWeight: 600 }}>✓ Ya incorporada al catalogo</span>}
+        {p.status === "aprobada" && <span style={{ alignSelf: "center", color: "var(--ok-strong)", fontWeight: 600 }}>✓ Ya incorporada al catalogo</span>}
         {p.status === "descartada" && <button className="btn btn-ghost" onClick={reconsider}>Reconsiderar</button>}
       </div>
 
@@ -157,7 +157,7 @@ export default function ProposalDetail() {
               />
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button className="btn btn-ghost" onClick={closeReject}>Cancelar</button>
-                <button className="btn" style={{ background: "#D64545", color: "#fff", opacity: rejectComment.trim() ? 1 : 0.5 }} onClick={sendReject}>
+                <button className="btn" style={{ background: "var(--danger)", color: "#fff", opacity: rejectComment.trim() ? 1 : 0.5 }} onClick={sendReject}>
                   Enviar rechazo
                 </button>
               </div>

@@ -17,6 +17,12 @@
   --muted-soft: #9C99B8;
   --line: #E6E3F2;
   --ok: #2BB673;
+  --ok-soft: #E2F6EC;
+  --ok-strong: #1E8E5A;
+  --danger: #D64545;
+  --danger-strong: #C0392B;
+  --danger-soft: #FBE9E9;
+  --danger-line: #E7B0B0;
 
   /* Tipografia */
   --font-display: "Fraunces", Georgia, serif;

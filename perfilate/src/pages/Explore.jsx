@@ -41,7 +41,7 @@ export default function Explore() {
   });
 
   // ----- Catalogo de recursos -----
-  const allResources = catalog.map((res) => ({ res, rts: routesOfResource(res.id, routes) }));
+  const allResources = catalog.filter((r) => r.estado !== "baja").map((res) => ({ res, rts: routesOfResource(res.id, routes) }));
   const tipos = [...new Set(allResources.map(({ res }) => res.type))];
   const niveles = NIVEL_ORDER.filter((n) => allResources.some(({ res }) => res.level === n));
   const resourceResults = allResources.filter(({ res, rts }) => {
@@ -177,6 +177,7 @@ export default function Explore() {
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <span className="tag tag-muted">{res.type}</span>
                     <span className="tag tag-muted">{res.level}</span>
+                    {res.estado === "desactualizado" && <span className="tag" style={{ background: "var(--accent-soft)", color: "var(--danger-strong)" }}>desactualizado</span>}
                   </div>
                   {rts.length > 0 ? (
                     <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
