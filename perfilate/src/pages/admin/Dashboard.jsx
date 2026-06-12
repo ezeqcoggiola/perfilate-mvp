@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
-import { ROUTES } from "../../data/mockData";
 import { ADMIN_ACTIVITY } from "../../data/adminMock";
 
 const SECTIONS = [
@@ -12,17 +11,17 @@ const SECTIONS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { catalog, proposals } = useApp();
+  const { catalog, proposals, routes, comments } = useApp();
 
   const pending = proposals.filter((p) => p.status === "pendiente").length;
-  const rated = catalog.filter((r) => r.rating && r.rating.count > 0);
-  const avgRating = rated.length ? (rated.reduce((a, r) => a + r.rating.avg, 0) / rated.length).toFixed(1) : "—";
+  const refMonth = comments.reduce((m, c) => (c.date > m ? c.date : m), "").slice(0, 7);
+  const commentsThisMonth = comments.filter((c) => c.date.slice(0, 7) === refMonth).length;
 
   const kpis = [
     { label: "Recursos en catalogo", value: catalog.length },
-    { label: "Rutas activas", value: ROUTES.length },
+    { label: "Rutas activas", value: routes.length },
     { label: "Propuestas pendientes", value: pending, accent: pending > 0 },
-    { label: "Valoracion promedio", value: `${avgRating} ★` },
+    { label: "Comentarios este mes", value: commentsThisMonth },
   ];
 
   return (

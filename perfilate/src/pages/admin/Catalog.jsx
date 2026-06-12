@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
-import { ROUTES } from "../../data/mockData";
+import { routesOfResource } from "../../data/mockData";
 
 const TIPOS = ["Curso", "Materia", "Certificacion", "Posgrado"];
 const NIVELES = ["Inicial", "Intermedio", "Avanzado"];
@@ -18,7 +18,11 @@ const COLS = "2fr 1fr 1fr 1.3fr auto";
 
 export default function Catalog() {
   const navigate = useNavigate();
-  const { catalog, addCatalogResources } = useApp();
+  const { catalog, addCatalogResources, routes } = useApp();
+  const routeNames = (id) => {
+    const rs = routesOfResource(id, routes);
+    return rs.length === 0 ? "—" : rs.length === 1 ? rs[0].name : `${rs[0].name} +${rs.length - 1}`;
+  };
 
   const [q, setQ] = useState("");
   const [fTipo, setFTipo] = useState("");
@@ -31,7 +35,7 @@ export default function Catalog() {
     const mq = !q || r.name.toLowerCase().includes(q.toLowerCase());
     const mt = !fTipo || r.type === fTipo;
     const mn = !fNivel || r.level === fNivel;
-    const mr = !fRuta || r.routeId === fRuta;
+    const mr = !fRuta || routesOfResource(r.id, routes).some((rt) => rt.id === fRuta);
     return mq && mt && mn && mr;
   });
 
@@ -42,7 +46,6 @@ export default function Catalog() {
         name: name || "Sin nombre",
         type: TIPOS.includes(type) ? type : "Curso",
         level: NIVELES.includes(level) ? level : "Inicial",
-        routeId: "", routeName: "Sin asignar",
       };
     });
     if (items.length) addCatalogResources(items);
@@ -97,7 +100,7 @@ export default function Catalog() {
         </select>
         <select value={fRuta} onChange={(e) => setFRuta(e.target.value)} style={{ ...control, cursor: "pointer" }}>
           <option value="">Todas las rutas</option>
-          {ROUTES.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+          {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
 
@@ -123,7 +126,7 @@ export default function Catalog() {
             <span style={{ fontSize: "0.92rem", fontWeight: 600 }}>{r.name}</span>
             <span><span className="tag tag-muted">{r.type}</span></span>
             <span style={{ fontSize: "0.88rem", color: "var(--muted)" }}>{r.level}</span>
-            <span style={{ fontSize: "0.88rem", color: "var(--muted)" }}>{r.routeName}</span>
+            <span style={{ fontSize: "0.88rem", color: "var(--muted)" }}>{routeNames(r.id)}</span>
             <button
               className="btn btn-ghost"
               style={{ padding: "6px 14px", fontSize: "0.8rem" }}

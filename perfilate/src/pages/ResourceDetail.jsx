@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../state/store";
-import { ROUTES, DIMENSIONS } from "../data/mockData";
+import { DIMENSIONS, formatDuration, routesOfResource, relativeDate } from "../data/mockData";
 
-// Estrellas 1-5. Si recibe onChange es interactiva; si no, es de solo lectura.
+// Estrellas 1-5. Si recibe onChange es interactiva; si no, de solo lectura.
 function Stars({ value, onChange, size = 26 }) {
   const [hover, setHover] = useState(0);
   const readOnly = !onChange;
@@ -17,11 +17,7 @@ function Stars({ value, onChange, size = 26 }) {
             role={readOnly ? undefined : "button"}
             onMouseEnter={readOnly ? undefined : () => setHover(i)}
             onClick={readOnly ? undefined : () => onChange(i)}
-            style={{
-              fontSize: size, lineHeight: 1,
-              color: on ? "var(--accent)" : "var(--line)",
-              cursor: readOnly ? "default" : "pointer",
-            }}
+            style={{ fontSize: size, lineHeight: 1, color: on ? "var(--accent)" : "var(--line)", cursor: readOnly ? "default" : "pointer" }}
           >
             ★
           </span>
@@ -32,11 +28,14 @@ function Stars({ value, onChange, size = 26 }) {
 }
 
 const dimLabel = (key) => DIMENSIONS.find((d) => d.key === key)?.short ?? key;
+const chip = (on) => (on
+  ? { cursor: "pointer", background: "var(--primary)", color: "#fff", border: "1px solid var(--primary)" }
+  : { cursor: "pointer" });
 
 export default function ResourceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { role, catalog, saved, toggleSaved, ratings, rateResource } = useApp();
+  const { role, profile, catalog, routes, saved, toggleSaved, ratings, rateResource, toggleResourceInRoute, comments, upsertUserComment } = useApp();
 
   const res = catalog.find((r) => r.id === id);
   const userRating = res ? ratings[res.id] : undefined;
@@ -54,18 +53,21 @@ export default function ResourceDetail() {
     );
   }
 
-  const route = ROUTES.find((r) => r.id === res.routeId);
-  const routeResources = res.routeId ? catalog.filter((r) => r.routeId === res.routeId) : [];
-  const step = routeResources.findIndex((r) => r.id === res.id) + 1;
-  const total = routeResources.length;
-
+  const myRoutes = routesOfResource(res.id, routes);
   const origin = res.origin;
   const hasOrigin = origin && (origin.provider || origin.kind || origin.partOf);
   const hasRating = res.rating && res.rating.count > 0;
+  const durStr = formatDuration(res.duration);
+
+  const resComments = comments.filter((c) => c.resourceId === res.id && c.status === "visible").sort((a, b) => b.date.localeCompare(a.date));
+  const today = comments.reduce((m, c) => (c.date > m ? c.date : m), "");
 
   const submit = () => {
     if (!score) return;
     rateResource(res.id, score, comment.trim());
+    if (comment.trim()) {
+      upsertUserComment({ by: profile.name || "Invitado", resourceId: res.id, resourceName: res.name, score, text: comment.trim() });
+    }
     setSent(true);
   };
 
@@ -80,19 +82,23 @@ export default function ResourceDetail() {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <span className="tag tag-muted">{res.type}</span>
             <span className="tag tag-muted">{res.level}</span>
-            {res.duration && <span className="tag tag-muted">⏱ {res.duration}</span>}
+            {durStr && <span className="tag tag-muted">⏱ {durStr}</span>}
           </div>
           <h1 style={{ fontSize: "2.4rem" }}>{res.name}</h1>
-          {route ? (
-            <button
-              onClick={() => navigate(`/ruta/${route.id}`)}
-              style={{ width: "fit-content", fontSize: "0.9rem", color: "var(--primary)", fontWeight: 600 }}
-            >
-              Parte de la ruta: {route.name} →
-            </button>
+
+          {myRoutes.length > 0 ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Parte de:</span>
+              {myRoutes.map((rt) => (
+                <button key={rt.id} className="tag" style={{ cursor: "pointer", background: "var(--primary-wash)", color: "var(--primary-deep)" }} onClick={() => navigate(`/ruta/${rt.id}`)}>
+                  {rt.name} · paso {rt.resourceIds.indexOf(res.id) + 1}/{rt.resourceIds.length}
+                </button>
+              ))}
+            </div>
           ) : (
             <span style={{ fontSize: "0.9rem", color: "var(--muted-soft)" }}>Sin ruta asignada</span>
           )}
+
           <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
             <button className="btn btn-primary" style={{ width: "fit-content" }} onClick={() => toggleSaved(res.id)}>
               {saved.includes(res.id) ? "♥ Recurso guardado" : "♡ Guardar recurso"}
@@ -114,6 +120,26 @@ export default function ResourceDetail() {
           </div>
         )}
       </header>
+
+      {/* Admin: agregar/quitar de rutas */}
+      {role === "admin" && (
+        <section className="card" style={{ padding: 24, display: "grid", gap: 12, background: "var(--primary-wash)" }}>
+          <div style={{ display: "grid", gap: 2 }}>
+            <strong style={{ fontSize: "1.05rem" }}>Rutas del recurso (admin)</strong>
+            <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Toc&aacute; para agregar o quitar este recurso de cada ruta.</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {routes.map((rt) => {
+              const inRoute = (rt.resourceIds ?? []).includes(res.id);
+              return (
+                <button key={rt.id} type="button" onClick={() => toggleResourceInRoute(rt.id, res.id)} className={inRoute ? "tag" : "tag tag-muted"} style={chip(inRoute)}>
+                  {inRoute ? "✓ " : "+ "}{rt.name}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {res.description && (
         <section className="card" style={{ padding: 24, display: "grid", gap: 10 }}>
@@ -146,7 +172,6 @@ export default function ResourceDetail() {
           <section className="card" style={{ padding: 24, display: "grid", gap: 14 }}>
             <h3 style={{ fontSize: "1.1rem" }}>Relaci&oacute;n con la ruta</h3>
             {res.relation.description && <p style={{ color: "var(--ink-soft)", fontSize: "0.95rem" }}>{res.relation.description}</p>}
-
             {res.relation.dims?.length > 0 && (
               <div style={{ display: "grid", gap: 6 }}>
                 <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--muted)" }}>Mas relacionado con</span>
@@ -155,20 +180,12 @@ export default function ResourceDetail() {
                 </div>
               </div>
             )}
-
             {res.relation.topics?.length > 0 && (
               <div style={{ display: "grid", gap: 6 }}>
                 <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--muted)" }}>Temas clave para la ruta</span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {res.relation.topics.map((t) => <span key={t} className="tag tag-muted">{t}</span>)}
                 </div>
-              </div>
-            )}
-
-            {route && total > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--primary-wash)", borderRadius: "var(--radius-sm)" }}>
-                <span className="mono" style={{ fontSize: "0.8rem", color: "var(--primary-deep)" }}>Paso {step} de {total}</span>
-                <span style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>en {route.name}</span>
               </div>
             )}
           </section>
@@ -189,14 +206,31 @@ export default function ResourceDetail() {
       <section className="card" style={{ padding: 24, display: "grid", gap: 12 }}>
         <h3 style={{ fontSize: "1.1rem" }}>Acceso al curso</h3>
         {res.link ? (
-          <a className="btn btn-primary" href={res.link} target="_blank" rel="noreferrer" style={{ width: "fit-content" }}>
-            Ir al curso ↗
-          </a>
+          <a className="btn btn-primary" href={res.link} target="_blank" rel="noreferrer" style={{ width: "fit-content" }}>Ir al curso ↗</a>
         ) : (
           <span style={{ fontSize: "0.9rem", color: "var(--muted-soft)" }}>Sin enlace cargado.</span>
         )}
         <span className="mono" style={{ fontSize: "0.72rem", color: "var(--muted-soft)" }}>Enlace de ejemplo · maqueta de demostracion</span>
       </section>
+
+      {/* Comentarios de la comunidad */}
+      {resComments.length > 0 && (
+        <section className="card" style={{ padding: 24, display: "grid", gap: 16 }}>
+          <h3 style={{ fontSize: "1.1rem" }}>Comentarios <span className="mono" style={{ fontSize: "0.85rem", color: "var(--muted-soft)" }}>({resComments.length})</span></h3>
+          <div style={{ display: "grid", gap: 14 }}>
+            {resComments.map((c) => (
+              <div key={c.id} style={{ display: "grid", gap: 6, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <strong style={{ fontSize: "0.92rem" }}>{c.by}</strong>
+                  <Stars value={c.score} size={14} />
+                  <span className="mono" style={{ fontSize: "0.72rem", color: "var(--muted-soft)" }}>{relativeDate(c.date, today)}</span>
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)" }}>“{c.text}”</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Puntuacion del usuario */}
       <section className="card" style={{ padding: 24, display: "grid", gap: 14 }}>

@@ -1,15 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { AffinityRing } from "./AffinityMeter";
 import { useApp } from "../state/store";
-import { buildReason } from "../data/mockData";
+import { buildReason, routeStats, TEMAS, resourcesOfRoute } from "../data/mockData";
 
-// Card de una ruta. Si recibe `score`, muestra el anillo de afinidad
-// y la justificacion generada.
-export default function RouteCard({ route, score, showReason = false }) {
+// Card de una ruta. Si recibe `score`, muestra el anillo de afinidad y la
+// justificacion. Con `showStats`, agrega dificultad/duracion/temas calculados.
+export default function RouteCard({ route, score, showReason = false, showStats = false }) {
   const navigate = useNavigate();
   const { saved, toggleSaved, profile, catalog } = useApp();
   const isSaved = saved.includes(route.id);
-  const resourceCount = catalog.filter((r) => r.routeId === route.id).length;
+  const resources = resourcesOfRoute(route, catalog);
+  const resourceCount = resources.length;
+  const stats = showStats ? routeStats(resources) : null;
+  const temas = showStats ? (route.temas ?? []).map((id) => TEMAS.find((t) => t.id === id)?.name).filter(Boolean) : [];
 
   return (
     <article
@@ -30,6 +33,20 @@ export default function RouteCard({ route, score, showReason = false }) {
       </div>
 
       <p style={{ color: "var(--muted)", fontSize: "0.92rem" }}>{route.summary}</p>
+
+      {showStats && (
+        <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            {stats.dificultad && <span className="mono" style={{ fontSize: "0.74rem", color: "var(--muted)" }}>Dificultad: {stats.dificultad}</span>}
+            {stats.weeks > 0 && <span className="mono" style={{ fontSize: "0.74rem", color: "var(--muted)" }}>≈ {stats.weeks} sem</span>}
+          </div>
+          {temas.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {temas.map((t) => <span key={t} className="tag tag-muted" style={{ fontSize: "0.7rem" }}>{t}</span>)}
+            </div>
+          )}
+        </div>
+      )}
 
       {showReason && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--accent-soft)", borderRadius: "var(--radius-sm)" }}>

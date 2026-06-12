@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../state/store";
-import { ROUTES } from "../../data/mockData";
+import Modal from "../../components/Modal";
 
 const TABS = [
   { key: "pendiente", label: "Pendientes" },
@@ -17,8 +17,16 @@ const STATUS_STYLE = {
 
 export default function Proposals() {
   const navigate = useNavigate();
-  const { proposals, setProposalStatus } = useApp();
+  const { proposals, setProposalStatus, routes } = useApp();
   const [tab, setTab] = useState("pendiente");
+
+  // Popup de rechazo (el comentario no se guarda; es solo demostrativo).
+  const [rejecting, setRejecting] = useState(null);
+  const [rejectComment, setRejectComment] = useState("");
+  const [rejectSent, setRejectSent] = useState(false);
+  const openReject = (p) => { setRejecting(p); setRejectComment(""); setRejectSent(false); };
+  const closeReject = () => { setRejecting(null); setRejectComment(""); setRejectSent(false); };
+  const sendReject = () => { setProposalStatus(rejecting.id, "descartada"); setRejectSent(true); };
 
   const counts = TABS.reduce((acc, t) => ({ ...acc, [t.key]: proposals.filter((p) => p.status === t.key).length }), {});
   const list = proposals.filter((p) => p.status === tab);
@@ -53,14 +61,14 @@ export default function Proposals() {
 
       <div style={{ display: "grid", gap: 14 }}>
         {list.map((p) => {
-          const route = ROUTES.find((r) => r.id === p.routeId);
+          const route = routes.find((r) => r.id === p.routeId);
           const temaCount = p.contents?.filter((t) => t.items?.length).length ?? 0;
           const extras = [];
           if (p.description) extras.push("descripcion");
           if (temaCount) extras.push(`${temaCount} ${temaCount === 1 ? "tema" : "temas"}`);
           if (p.relation && (p.relation.description || p.relation.dims?.length || p.relation.topics?.length)) extras.push("relacion");
           if (p.origin && (p.origin.provider || p.origin.kind || p.origin.partOf)) extras.push("origen");
-          if (p.duration) extras.push("duracion");
+          if (p.duration && (p.duration.hours || p.duration.weeks)) extras.push("duracion");
           if (p.link) extras.push("link");
           return (
             <div key={p.id} className="card" style={{ padding: 20, display: "grid", gap: 12 }}>
@@ -97,7 +105,7 @@ export default function Proposals() {
                   </button>
                   {p.status === "pendiente" && (
                     <>
-                      <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => setProposalStatus(p.id, "descartada")}>
+                      <button className="btn btn-ghost" style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => openReject(p)}>
                         Descartar
                       </button>
                       <button className="btn btn-primary" style={{ padding: "7px 16px", fontSize: "0.82rem" }} onClick={() => navigate(`/admin/catalogo/nuevo?propuesta=${p.id}`)}>
@@ -119,6 +127,44 @@ export default function Proposals() {
           );
         })}
       </div>
+
+      {rejecting && (
+        <Modal title={rejectSent ? "Rechazo enviado" : "Rechazar propuesta"} onClose={closeReject}>
+          {!rejectSent ? (
+            <>
+              <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
+                Conta por qu&eacute; se rechaza “{rejecting.name}”. Se le enviar&aacute; el motivo a <strong>{rejecting.by}</strong>.
+              </p>
+              <textarea
+                value={rejectComment}
+                onChange={(e) => setRejectComment(e.target.value)}
+                rows={4}
+                placeholder="Motivo del rechazo"
+                style={{ padding: "12px 14px", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", background: "var(--surface)", resize: "vertical" }}
+              />
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button className="btn btn-ghost" onClick={closeReject}>Cancelar</button>
+                <button className="btn" style={{ background: "#D64545", color: "#fff", opacity: rejectComment.trim() ? 1 : 0.5 }} onClick={sendReject}>
+                  Enviar rechazo
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)" }}>
+                ✓ Se le enviar&iacute;a a <strong>{rejecting.by}</strong> el siguiente motivo:
+              </p>
+              <p style={{ fontStyle: "italic", color: "var(--muted)", padding: "10px 12px", background: "var(--bg)", borderRadius: "var(--radius-sm)" }}>
+                “{rejectComment}”
+              </p>
+              <span className="mono" style={{ fontSize: "0.72rem", color: "var(--muted-soft)" }}>Demo: el comentario no se guarda.</span>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button className="btn btn-primary" onClick={closeReject}>Cerrar</button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
     </div>
   );
 }

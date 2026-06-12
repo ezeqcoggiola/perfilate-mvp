@@ -1,18 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../state/store";
-import { ROUTES, cosineAffinity } from "../data/mockData";
+import { cosineAffinity, routeStats, TEMAS, resourcesOfRoute } from "../data/mockData";
 import { AffinityRing, DimensionBars } from "../components/AffinityMeter";
 
 export default function RouteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { profile, saved, toggleSaved, catalog } = useApp();
-  const route = ROUTES.find((r) => r.id === id);
+  const { profile, saved, toggleSaved, catalog, routes } = useApp();
+  const route = routes.find((r) => r.id === id);
 
   if (!route) return <p>Ruta no encontrada. <button className="btn btn-ghost" onClick={() => navigate("/app")}>Volver</button></p>;
 
   const score = Math.round(cosineAffinity(profile.weights, route.weights) * 100);
-  const resources = catalog.filter((r) => r.routeId === route.id);
+  const resources = resourcesOfRoute(route, catalog);
+  const stats = routeStats(resources);
+  const temas = (route.temas ?? []).map((id) => TEMAS.find((t) => t.id === id)?.name).filter(Boolean);
   const isSaved = saved.includes(route.id);
 
   return (
@@ -26,6 +28,15 @@ export default function RouteDetail() {
           <span className="tag" style={{ width: "fit-content", background: "var(--primary-wash)", color: "var(--primary-deep)" }}>{route.profile}</span>
           <h1 style={{ fontSize: "2.6rem" }}>{route.name}</h1>
           <p style={{ color: "var(--muted)", maxWidth: 560 }}>{route.summary}</p>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {stats.dificultad && <span className="mono" style={{ fontSize: "0.8rem", color: "var(--muted)" }}>Dificultad: {stats.dificultad}</span>}
+            {stats.weeks > 0 && <span className="mono" style={{ fontSize: "0.8rem", color: "var(--muted)" }}>Duracion: ≈ {stats.weeks} semanas</span>}
+          </div>
+          {temas.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {temas.map((t) => <span key={t} className="tag tag-muted">{t}</span>)}
+            </div>
+          )}
           <button className="btn btn-primary" style={{ width: "fit-content", marginTop: 6 }} onClick={() => toggleSaved(route.id)}>
             {isSaved ? "♥ Ruta guardada" : "♡ Guardar ruta"}
           </button>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
-import { SAMPLE_PROFILE, rankRoutes } from "../data/mockData";
-import { INITIAL_CATALOG, PROPOSALS } from "../data/adminMock";
+import { SAMPLE_PROFILE, rankRoutes, INITIAL_ROUTES } from "../data/mockData";
+import { INITIAL_CATALOG, PROPOSALS, COMMENTS } from "../data/adminMock";
 
 // Estado global de la maqueta. OJO: todo vive en memoria. Si recargas
 // la pagina, vuelve a cero. Es a proposito: la demo no persiste nada.
@@ -16,6 +16,8 @@ export function AppProvider({ children }) {
   const [ratings, setRatings] = useState({}); // { [resourceId]: { score, comment } }
   const [catalog, setCatalog] = useState(INITIAL_CATALOG); // catalogo admin (editable en sesion)
   const [proposals, setProposals] = useState(PROPOSALS); // propuestas de usuarios (en sesion)
+  const [routes, setRoutes] = useState(INITIAL_ROUTES); // rutas editables (camino = resourceIds N:N)
+  const [comments, setComments] = useState(COMMENTS); // comentarios para moderar (en sesion)
 
   const login = (asRole) => setRole(asRole);
   const logout = () => {
@@ -62,7 +64,54 @@ export function AppProvider({ children }) {
   const setProposalStatus = (id, status) =>
     setProposals((ps) => ps.map((p) => (p.id === id ? { ...p, status } : p)));
 
-  const recommendations = rankRoutes(profile.weights).filter(
+  // Rutas (en memoria). El camino se guarda como resourceIds ordenado (N:N).
+  const addRoute = (route) =>
+    setRoutes((rs) => [{ id: `route-${Date.now()}`, resourceIds: [], temas: [], ...route }, ...rs]);
+  const updateRoute = (id, patch) =>
+    setRoutes((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addResourceToRoute = (routeId, resourceId) =>
+    setRoutes((rs) => rs.map((r) => (r.id === routeId && !(r.resourceIds ?? []).includes(resourceId)
+      ? { ...r, resourceIds: [...(r.resourceIds ?? []), resourceId] } : r)));
+  const removeResourceFromRoute = (routeId, resourceId) =>
+    setRoutes((rs) => rs.map((r) => (r.id === routeId
+      ? { ...r, resourceIds: (r.resourceIds ?? []).filter((x) => x !== resourceId) } : r)));
+  const toggleResourceInRoute = (routeId, resourceId) =>
+    setRoutes((rs) => rs.map((r) => {
+      if (r.id !== routeId) return r;
+      const has = (r.resourceIds ?? []).includes(resourceId);
+      return { ...r, resourceIds: has ? r.resourceIds.filter((x) => x !== resourceId) : [...(r.resourceIds ?? []), resourceId] };
+    }));
+  const moveResourceInRoute = (routeId, index, dir) =>
+    setRoutes((rs) => rs.map((r) => {
+      if (r.id !== routeId) return r;
+      const ids = [...(r.resourceIds ?? [])];
+      const j = index + dir;
+      if (j < 0 || j >= ids.length) return r;
+      [ids[index], ids[j]] = [ids[j], ids[index]];
+      return { ...r, resourceIds: ids };
+    }));
+
+  // Comentarios (en memoria). El comentario del usuario en un recurso entra
+  // a la coleccion (upsert por usuario+recurso) y puede moderarse.
+  const setCommentStatus = (id, status) =>
+    setComments((cs) => cs.map((c) => (c.id === id ? { ...c, status } : c)));
+  const deleteComment = (id) =>
+    setComments((cs) => cs.filter((c) => c.id !== id));
+  const suspendUser = (by) =>
+    setComments((cs) => cs.map((c) => (c.by === by ? { ...c, status: "oculto" } : c)));
+  const upsertUserComment = ({ by, resourceId, resourceName, score, text }) =>
+    setComments((cs) => {
+      const today = new Date().toISOString().slice(0, 10);
+      const idx = cs.findIndex((c) => c.by === by && c.resourceId === resourceId);
+      if (idx >= 0) {
+        const next = [...cs];
+        next[idx] = { ...next[idx], score, text, date: today, status: "visible" };
+        return next;
+      }
+      return [{ id: `cm-${Date.now()}`, by, resourceId, resourceName, score, text, date: today, status: "visible" }, ...cs];
+    });
+
+  const recommendations = rankRoutes(profile.weights, routes).filter(
     (r) => !dismissed.includes(r.route.id)
   );
 
@@ -74,6 +123,9 @@ export function AppProvider({ children }) {
     ratings, rateResource,
     catalog, addCatalogResources, updateCatalogResource,
     proposals, addProposal, setProposalStatus,
+    routes, addRoute, updateRoute,
+    addResourceToRoute, removeResourceFromRoute, toggleResourceInRoute, moveResourceInRoute,
+    comments, setCommentStatus, deleteComment, suspendUser, upsertUserComment,
     recommendations,
   };
 

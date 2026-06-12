@@ -17,7 +17,9 @@ import Catalog from "./pages/admin/Catalog";
 import CatalogForm from "./pages/admin/CatalogForm";
 import Proposals from "./pages/admin/Proposals";
 import ProposalDetail from "./pages/admin/ProposalDetail";
-import Placeholder from "./pages/Placeholder";
+import Routes_ from "./pages/admin/Routes";
+import RouteForm from "./pages/admin/RouteForm";
+import Moderacion from "./pages/admin/Moderacion";
 
 // Guard simple: si no hay rol, manda al login.
 function Require({ children }) {
@@ -60,8 +62,10 @@ export default function App() {
         <Route path="catalogo/:id/editar" element={<CatalogForm />} />
         <Route path="propuestas" element={<Proposals />} />
         <Route path="propuestas/:id" element={<ProposalDetail />} />
-        <Route path="rutas" element={<Placeholder title="Armado de rutas" note="Crear rutas y asociar recursos en orden." />} />
-        <Route path="moderacion" element={<Placeholder title="Moderacion" note="Revisar comentarios y resultados de encuestas." />} />
+        <Route path="rutas" element={<Routes_ />} />
+        <Route path="rutas/nueva" element={<RouteForm />} />
+        <Route path="rutas/:id/editar" element={<RouteForm />} />
+        <Route path="moderacion" element={<Moderacion />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

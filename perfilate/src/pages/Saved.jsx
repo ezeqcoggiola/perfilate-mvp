@@ -1,17 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../state/store";
-import { ROUTES, cosineAffinity } from "../data/mockData";
+import { cosineAffinity, routesOfResource } from "../data/mockData";
 import RouteCard from "../components/RouteCard";
 
 export default function Saved() {
   const navigate = useNavigate();
-  const { saved, toggleSaved, profile, catalog } = useApp();
+  const { saved, toggleSaved, profile, catalog, routes } = useApp();
 
   // saved mezcla ids de rutas y de recursos. Los separamos contra los datos.
-  const savedRoutes = ROUTES.filter((r) => saved.includes(r.id));
+  const savedRoutes = routes.filter((r) => saved.includes(r.id));
   const savedResources = catalog
     .filter((res) => saved.includes(res.id))
-    .map((res) => ({ res, route: ROUTES.find((r) => r.id === res.routeId) }));
+    .map((res) => ({ res, rts: routesOfResource(res.id, routes) }));
 
   const isEmpty = savedRoutes.length === 0 && savedResources.length === 0;
 
@@ -54,7 +54,7 @@ export default function Saved() {
         <section style={{ display: "grid", gap: 16 }}>
           <h3 style={{ fontSize: "1.2rem" }}>Recursos guardados <span className="mono" style={{ fontSize: "0.9rem", color: "var(--muted-soft)" }}>({savedResources.length})</span></h3>
           <div style={{ display: "grid", gap: 12 }}>
-            {savedResources.map(({ res, route }) => (
+            {savedResources.map(({ res, rts }) => (
               <div
                 key={res.id}
                 className="card"
@@ -69,15 +69,16 @@ export default function Saved() {
                     <span className="tag tag-muted">{res.type}</span>
                     <span className="tag tag-muted">{res.level}</span>
                   </div>
-                  {route ? (
+                  {rts.length > 0 ? (
                     <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                      de la ruta{" "}
+                      {rts.length === 1 ? "de la ruta " : "en "}
                       <span
-                        onClick={(e) => { e.stopPropagation(); navigate(`/ruta/${route.id}`); }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/ruta/${rts[0].id}`); }}
                         style={{ color: "var(--primary)", fontWeight: 600, cursor: "pointer" }}
                       >
-                        {route.name} →
+                        {rts[0].name} →
                       </span>
+                      {rts.length > 1 && <span style={{ color: "var(--muted-soft)" }}> +{rts.length - 1}</span>}
                     </span>
                   ) : (
                     <span style={{ fontSize: "0.82rem", color: "var(--muted-soft)" }}>Sin ruta asignada</span>

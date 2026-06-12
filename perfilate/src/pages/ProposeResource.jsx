@@ -10,18 +10,19 @@ const field = {
 
 export default function ProposeResource() {
   const navigate = useNavigate();
-  const { profile, addProposal } = useApp();
+  const { profile, addProposal, routes } = useApp();
   const [form, setForm] = useState(emptyResourceForm());
+  const [routeId, setRouteId] = useState("");
   const [motivo, setMotivo] = useState("");
   const [sent, setSent] = useState(false);
 
   const submit = () => {
     if (!form.name.trim()) return;
-    addProposal({ ...buildResourcePayload(form), motivo: motivo.trim(), by: profile.name || "Invitado" });
+    addProposal({ ...buildResourcePayload(form), routeId, motivo: motivo.trim(), by: profile.name || "Invitado" });
     setSent(true);
   };
 
-  const proposeAnother = () => { setForm(emptyResourceForm()); setMotivo(""); setSent(false); };
+  const proposeAnother = () => { setForm(emptyResourceForm()); setRouteId(""); setMotivo(""); setSent(false); };
 
   if (sent) {
     return (
@@ -51,16 +52,26 @@ export default function ProposeResource() {
 
       <ResourceForm form={form} setForm={setForm} />
 
-      {/* Motivo (propio de la propuesta) */}
-      <section className="card" style={{ padding: 24, display: "grid", gap: 10 }}>
-        <strong style={{ fontSize: "1.05rem" }}>¿Por qu&eacute; lo propon&eacute;s?</strong>
-        <textarea
-          value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          rows={3}
-          placeholder="Conta por que te parece relevante para esta plataforma (opcional)"
-          style={{ ...field, resize: "vertical" }}
-        />
+      {/* Datos propios de la propuesta */}
+      <section className="card" style={{ padding: 24, display: "grid", gap: 16 }}>
+        <strong style={{ fontSize: "1.05rem" }}>Sobre tu propuesta</strong>
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>Ruta sugerida (opcional)</label>
+          <select value={routeId} onChange={(e) => setRouteId(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+            <option value="">Sin definir</option>
+            {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+        </div>
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--muted)" }}>¿Por qu&eacute; lo propon&eacute;s?</label>
+          <textarea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            rows={3}
+            placeholder="Conta por que te parece relevante para esta plataforma (opcional)"
+            style={{ ...field, resize: "vertical" }}
+          />
+        </div>
       </section>
 
       <div style={{ display: "flex", gap: 12 }}>

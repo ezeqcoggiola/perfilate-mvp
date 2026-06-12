@@ -6,7 +6,7 @@ import ResourceForm, { emptyResourceForm, hydrateResourceForm, buildResourcePayl
 export default function CatalogForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { catalog, addCatalogResources, updateCatalogResource, proposals, setProposalStatus } = useApp();
+  const { catalog, addCatalogResources, updateCatalogResource, proposals, setProposalStatus, addResourceToRoute } = useApp();
   const [searchParams] = useSearchParams();
   const propuestaId = searchParams.get("propuesta");
 
@@ -35,6 +35,7 @@ export default function CatalogForm() {
     } else {
       const newId = `r-${Date.now()}`;
       addCatalogResources([{ id: newId, rating: { avg: 0, count: 0 }, ...payload }]);
+      if (proposal?.routeId) addResourceToRoute(proposal.routeId, newId);
       if (propuestaId) setProposalStatus(propuestaId, "aprobada");
       navigate(`/recurso/${newId}`);
     }

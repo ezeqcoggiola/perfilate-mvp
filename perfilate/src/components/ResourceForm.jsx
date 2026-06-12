@@ -1,4 +1,4 @@
-import { ROUTES, DIMENSIONS, ORIGEN_TIPOS } from "../data/mockData";
+import { DIMENSIONS, ORIGEN_TIPOS } from "../data/mockData";
 
 // Form completo de un recurso, reutilizado por el alta/edicion del admin
 // y por la propuesta del usuario (ahi todos los campos son opcionales salvo
@@ -17,8 +17,9 @@ const chip = (on) => (on
   : { cursor: "pointer" });
 
 export const emptyResourceForm = () => ({
-  name: "", type: "Curso", level: "Inicial", routeId: "",
-  duration: "", link: "", description: "",
+  name: "", type: "Curso", level: "Inicial",
+  duration: { mode: "horas", hours: "", weeks: "", hoursPerWeek: "" },
+  link: "", description: "",
   contents: [{ tema: "", items: [""] }],
   relation: { description: "", dims: [], topics: [] },
   origin: { provider: "", kind: "", partOf: "" },
@@ -26,8 +27,13 @@ export const emptyResourceForm = () => ({
 
 export const hydrateResourceForm = (r) => ({
   name: r.name ?? "", type: r.type ?? "Curso", level: r.level ?? "Inicial",
-  routeId: r.routeId ?? "",
-  duration: r.duration ?? "", link: r.link ?? "", description: r.description ?? "",
+  duration: {
+    mode: r.duration?.mode ?? "horas",
+    hours: r.duration?.hours ?? "",
+    weeks: r.duration?.weeks ?? "",
+    hoursPerWeek: r.duration?.hoursPerWeek ?? "",
+  },
+  link: r.link ?? "", description: r.description ?? "",
   contents: r.contents?.length
     ? r.contents.map((t) => ({ tema: t.tema, items: t.items?.length ? [...t.items] : [""] }))
     : [{ tema: "", items: [""] }],
@@ -46,13 +52,15 @@ export function buildResourcePayload(form) {
     .filter((t) => t.tema || t.items.length);
   const titles = contents.map((t) => t.tema).filter(Boolean);
   const origin = (form.origin.provider || form.origin.kind || form.origin.partOf) ? { ...form.origin } : null;
+  const d = form.duration;
+  const duration = d.mode === "semanas"
+    ? { mode: "semanas", weeks: Number(d.weeks) || 0, hoursPerWeek: Number(d.hoursPerWeek) || 0 }
+    : { mode: "horas", hours: Number(d.hours) || 0 };
   return {
     name: form.name.trim(),
     type: form.type,
     level: form.level,
-    routeId: form.routeId,
-    routeName: ROUTES.find((r) => r.id === form.routeId)?.name ?? "Sin asignar",
-    duration: form.duration.trim(),
+    duration,
     link: form.link.trim(),
     description: form.description.trim(),
     contents,
@@ -79,6 +87,8 @@ export default function ResourceForm({ form, setForm }) {
     ...f, relation: { ...f.relation, topics: f.relation.topics.includes(t) ? f.relation.topics.filter((x) => x !== t) : [...f.relation.topics, t] },
   }));
   const setOrigin = (k, v) => setForm((f) => ({ ...f, origin: { ...f.origin, [k]: v } }));
+  const setDur = (k, v) => setForm((f) => ({ ...f, duration: { ...f.duration, [k]: v } }));
+  const setDurMode = (mode) => setForm((f) => ({ ...f, duration: { ...f.duration, mode } }));
 
   const temaTitles = form.contents.map((t) => t.tema.trim()).filter(Boolean);
 
@@ -104,17 +114,23 @@ export default function ResourceForm({ form, setForm }) {
               {NIVELES.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={labelStyle}>Ruta</label>
-            <select value={form.routeId} onChange={(e) => setField("routeId", e.target.value)} style={{ ...field, cursor: "pointer" }}>
-              <option value="">Sin definir</option>
-              {ROUTES.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-            </select>
+        </div>
+
+        <div style={{ display: "grid", gap: 8 }}>
+          <label style={labelStyle}>Duracion</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[["horas", "Horas totales"], ["semanas", "Semanas"]].map(([m, lbl]) => (
+              <button key={m} type="button" className={form.duration.mode === m ? "btn btn-primary" : "btn btn-ghost"} style={{ padding: "7px 14px", fontSize: "0.82rem" }} onClick={() => setDurMode(m)}>{lbl}</button>
+            ))}
           </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={labelStyle}>Duracion</label>
-            <input value={form.duration} onChange={(e) => setField("duration", e.target.value)} placeholder="Ej: 6 semanas, 40 horas" style={field} />
-          </div>
+          {form.duration.mode === "horas" ? (
+            <input type="number" min="0" value={form.duration.hours} onChange={(e) => setDur("hours", e.target.value)} placeholder="Horas totales (a tu ritmo)" style={field} />
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <input type="number" min="0" value={form.duration.weeks} onChange={(e) => setDur("weeks", e.target.value)} placeholder="Semanas" style={field} />
+              <input type="number" min="0" value={form.duration.hoursPerWeek} onChange={(e) => setDur("hoursPerWeek", e.target.value)} placeholder="Horas por semana" style={field} />
+            </div>
+          )}
         </div>
         <div style={{ display: "grid", gap: 6 }}>
           <label style={labelStyle}>Link al curso</label>
