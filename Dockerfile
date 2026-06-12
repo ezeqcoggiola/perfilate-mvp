@@ -32,4 +32,4 @@ EXPOSE 80
 
 # Run nginx in foreground
 ## At runtime replace ${PORT} in the nginx template with the actual PORT env var (Render provides $PORT)
-CMD ["/bin/sh", "-lc", "envsubst '$$PORT' < /etc/nginx/conf.d/app.conf.template > /etc/nginx/conf.d/app.conf && nginx -g 'daemon off;'" ]
+CMD ["/bin/sh", "-lc", ": ${PORT:=80} ; export PORT ; envsubst '$$PORT' < /etc/nginx/conf.d/app.conf.template > /etc/nginx/conf.d/app.conf && nginx -g 'daemon off;'" ]
